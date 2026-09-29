@@ -124,7 +124,7 @@ describe("Door", () => {
         const player = new Player;
         const object = "torch";
         const room = new Room;
-
+        room.addItem(object);
         player.pickObject(object, room);
 
         expect(player.inventory).toContain(object);
