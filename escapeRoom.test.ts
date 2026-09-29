@@ -7,7 +7,7 @@
 // Refactorisez votre code si nécessaire.
 
 import { describe, expect, it } from "vitest";
-import { Door, Key, Player } from "./escapeRoom";
+import { Door, Key, Player, Room } from "./escapeRoom";
 
 describe("Door", () => {
     // Développez le comportement permettant de déterminer si une porte peut être franchie.
@@ -54,7 +54,7 @@ describe("Door", () => {
         const player = new Player;
         const key = "bleu";
         door.imposeKey(key);
-        player.addKey(key);
+        player.addToInventory(key);
 
         expect(player.canOpenDoor(door)).toBe(true);
     });
@@ -97,9 +97,9 @@ describe("Door", () => {
         const player = new Player;
         const key = "blue";
         door.imposeKey(key);
-        player.addKey(key);
-        player.addKey("red");
-        player.addKey("torch");
+        player.addToInventory(key);
+        player.addToInventory("red");
+        player.addToInventory("torch");
         player.openDoor(door);
 
         expect(door.isClosed).toBe(false);
@@ -120,8 +120,33 @@ describe("Door", () => {
     // room.items = []
     // player.inventory = ["torch"]
 
-    it("", () => { });
+    it("Lorsqu'un joueur ramasse un objet, celui-ci est ajouté à son inventaire et retiré de la salle", () => {
+        const player = new Player;
+        const object = "torch";
+        const room = new Room;
 
+        player.pickObject(object, room);
+
+        expect(player.inventory).toContain(object);
+        expect(room.items).not.toContain(object);
+    });
+
+    // Faites évoluer le comportement du ramassage.
+    // La règle métier est :
+    // Un objet déjà ramassé ne peut pas être ramassé une seconde fois.
+    // Testez notamment le cas où le joueur tente de ramasser un objet qui ne se trouve plus dans la salle.
+    // Avant de coder, déterminez ce que doit faire le moteur dans cette situation.
+
+    it("Un objet déjà ramassé ne peut pas être ramassé une seconde fois", () => {
+        const player = new Player;
+        const object = "torch";
+        const room = new Room;
+
+        player.pickObject(object, room);
+
+        expect(player.pickObject(object, room)).toEqual("impossible, cet objet n'est pas dans cette salle");
+
+    });
 
     // it("", () => {});
 

@@ -55,8 +55,8 @@ export class Player {
         this.inventory = [];
     }
 
-    addKey(key: string): void {
-        this.inventory.push(key);
+    addToInventory(object: string): void {
+        this.inventory.push(object);
     }
 
     canOpenDoor(door: Door): boolean {
@@ -75,5 +75,30 @@ export class Player {
         }
         this.inventory = this.inventory.filter(element => element !== door.key);
         door.isClosed = false;
+    }
+
+    pickObject(object: string, room: Room): string {
+        if (room.items.find(i => i === object) === undefined) {
+            return "impossible, cet objet n'est pas dans cette salle";
+        }
+        this.addToInventory(object);
+        room.removeItem(object);
+        return "objet ramassé";
+    }
+}
+
+export class Room {
+    items: string[];
+
+    constructor() {
+        this.items = [];
+    }
+
+    addItem(object: string): void {
+        this.items.push(object);
+    }
+
+    removeItem(object: string): void {
+        this.items = this.items.filter(e => e !== object);
     }
 }
