@@ -7,7 +7,7 @@
 // Refactorisez votre code si nécessaire.
 
 import { describe, expect, it } from "vitest";
-import { Door, Key, Player, Room } from "./escapeRoom";
+import { Door, Enigma, Key, Player, Room } from "./escapeRoom";
 
 describe("Door", () => {
     // Développez le comportement permettant de déterminer si une porte peut être franchie.
@@ -165,8 +165,6 @@ describe("Door", () => {
 
         expect(player.useObject(object)).toBe(true);
         expect(player.inventory).not.toContain(object);
-
-
     });
 
     it("Un joueur ne peut pas utiliser un objet qu'il ne possède pas dans son inventaire", () => {
@@ -177,6 +175,70 @@ describe("Door", () => {
         expect(player.useObject(object)).toBe(false);
     });
 
+    // Ajoutez la possibilité de protéger une porte avec une énigme.
+    // Une porte peut être associée à une énigme.
+    // Pour franchir la porte, l’énigme doit avoir été résolue.
+    // Le joueur doit fournir la bonne réponse pour résoudre l’énigme.
+    // Une mauvaise réponse ne permet pas de résoudre l’énigme.
+    // Une fois résolue, l’énigme reste résolue.
+    // À faire :
+    // Écrivez les tests avant le code.
+    // Testez au minimum :
+    //     la bonne réponse
+    //     une mauvaise réponse
+    //     le franchissement d’une porte dont l’énigme n’est pas résolue
+    //     le franchissement d’une porte dont l’énigme est résolue
+    // Faites passer les tests puis refactorez si nécessaire.
+    // Déterminez le comportement attendu lorsqu'un joueur tente d'utiliser un objet qu'il ne possède pas.
+
+
+    it("Une porte peut être associée à une énigme", () => {
+        const door = new Door('porte 1');
+        let enigma = new Enigma("M. et Mme Ervitmonslip ont deux fils, comment s'appellent-ils?", "Jean, Philippe");
+        door.imposeEnigma(enigma);
+
+        expect(door.enigma).not.toBe(undefined);
+    });
+
+    it("Le joueur doit fournir la bonne réponse pour résoudre l’énigme", () => {
+        const door = new Door('porte 1');
+        const player = new Player;
+        const enigma = new Enigma("M. et Mme Ervitmonslip ont deux fils, comment s'appellent-ils?", "Jean, Philippe");
+        door.imposeEnigma(enigma);
+        player.tryEnigma(enigma, "Jean, Philippe");
+
+        expect(enigma.isSolved).toBe(true);
+    });
+
+    it("Une mauvaise réponse ne permet pas de résoudre l’énigme", () => {
+        const door = new Door('porte 1');
+        const player = new Player;
+        const enigma = new Enigma("M. et Mme Ervitmonslip ont deux fils, comment s'appellent-ils?", "Jean, Philippe");
+        door.imposeEnigma(enigma);
+        player.tryEnigma(enigma, "Jean, Charles");
+
+        expect(enigma.isSolved).toBe(false);
+    });
+
+    it("Pour franchir la porte, l’énigme doit avoir été résolue", () => {
+        const door = new Door('porte 1');
+        const player = new Player;
+        const enigma = new Enigma("M. et Mme Ervitmonslip ont deux fils, comment s'appellent-ils?", "Jean, Philippe");
+        door.imposeEnigma(enigma);
+        enigma.isSolved = false;
+
+        expect(player.canOpenDoor(door)).toBe(false);
+    });
+
+    it("Pour franchir la porte, l’énigme doit avoir été résolue", () => {
+        const door = new Door('porte 1');
+        const player = new Player;
+        const enigma = new Enigma("M. et Mme Ervitmonslip ont deux fils, comment s'appellent-ils?", "Jean, Philippe");
+        door.imposeEnigma(enigma);
+        enigma.isSolved = true;
+
+        expect(player.canOpenDoor(door)).toBe(true);
+    });
 
     // it("", () => {});
 

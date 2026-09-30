@@ -2,10 +2,13 @@ export class Door {
     name: string;
     isClosed: boolean;
     key: string | undefined;
+    enigma: Enigma | undefined;
 
     constructor(name: string) {
         this.name = name;
         this.isClosed = true;
+        this.enigma = undefined;
+        this.key = undefined;
     }
 
     passDoor(): boolean {
@@ -26,27 +29,22 @@ export class Door {
     imposeKey(key: string): void {
         this.key = key;
     }
+
+    imposeEnigma(enigma: Enigma): void {
+        this.enigma = enigma;
+    }
 }
 
-// export class Key {
-//     doors: Door[];
+export class Enigma {
+    question: string;
+    response: string;
+    isSolved: boolean = false;
 
-//     constructor() {
-//         this.doors = [];
-//     }
-
-//     addDoor(door: Door): void {
-//         this.doors.push(door);
-//     }
-
-//     isOkForDoor(door: Door): boolean {
-//         if (this.doors.find(door => door.name === door.name) !== undefined) {
-//             return true;
-//         }
-//         return false;
-//     }
-
-// }
+    constructor(question: string, response: string) {
+        this.question = question;
+        this.response = response;
+    }
+}
 
 export class Player {
     inventory: string[];
@@ -61,9 +59,15 @@ export class Player {
 
     canOpenDoor(door: Door): boolean {
         if (door.key === undefined) {
-            return true;
+            if (door.enigma === undefined) {
+                return true;
+            }
+            else if (door.enigma.isSolved === true) {
+                return true;
+            }
+            return false;
         }
-        if (this.inventory.find(key => key === door.key) !== undefined) {
+        else if (this.inventory.find(key => key === door.key) !== undefined) {
             return true;
         }
         return false;
@@ -92,6 +96,14 @@ export class Player {
         }
         this.inventory = this.inventory.filter(e => e !== object);
         return true;
+    }
+
+    tryEnigma(enigma: Enigma, response: string): boolean {
+        if (response == enigma.response) {
+            enigma.isSolved = true;
+            return true;
+        }
+        return false;
     }
 }
 
