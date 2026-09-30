@@ -240,6 +240,58 @@ describe("Door", () => {
         expect(player.canOpenDoor(door)).toBe(true);
     });
 
+    // Faites évoluer le fonctionnement des énigmes.
+    // Chaque mauvaise réponse augmente le nombre de tentatives échouées.
+    // Après 3 mauvaises réponses, une conséquence doit être déclenchée.
+    // Une bonne réponse permet toujours de résoudre l’énigme.
+    // Une énigme déjà résolue ne peut pas être résolue une seconde fois.
+    // À faire :
+    // Déterminez les cas à tester.
+    // Écrivez les tests avant de modifier le code.
+    // Vérifiez notamment les comportements à 2 puis 3 mauvaises réponses.
+
+    it("Chaque mauvaise réponse augmente le nombre de tentatives échouées", () => {
+        const door = new Door('porte 1');
+        const player = new Player;
+        const enigma = new Enigma("M. et Mme Ervitmonslip ont deux fils, comment s'appellent-ils?", "Jean, Philippe");
+        door.imposeEnigma(enigma);
+        player.tryEnigma(enigma, "Jean, Charles");
+        player.tryEnigma(enigma, "Pierre, Philippe");
+
+        expect(enigma.attempts).toStrictEqual(2);
+
+    });
+
+    it("Après 3 mauvaises réponses, une conséquence doit être déclenchée", () => {
+        const door = new Door('porte 1');
+        const player = new Player;
+        const enigma = new Enigma("M. et Mme Ervitmonslip ont deux fils, comment s'appellent-ils?", "Jean, Philippe");
+        player.addToInventory("torch");
+        player.addToInventory("blue");
+        door.imposeEnigma(enigma);
+        player.tryEnigma(enigma, "Jean, Charles");
+        player.tryEnigma(enigma, "Pierre, Philippe");
+        player.tryEnigma(enigma, "Pierre, Charles");
+
+        expect(player.inventory).toEqual([]);
+        expect(enigma.attempts).toEqual(0);
+    });
+
+    it("Avant 3 mauvaises réponses, l'inventaire n'est pas vidé", () => {
+        const door = new Door('porte 1');
+        const player = new Player;
+        const enigma = new Enigma("M. et Mme Ervitmonslip ont deux fils, comment s'appellent-ils?", "Jean, Philippe");
+        player.addToInventory("torch");
+        player.addToInventory("blue");
+        door.imposeEnigma(enigma);
+        player.tryEnigma(enigma, "Jean, Charles");
+        player.tryEnigma(enigma, "Pierre, Philippe");
+
+        expect(player.inventory).not.toEqual([]);
+        expect(enigma.attempts).toEqual(2);
+    });
+
+
     // it("", () => {});
 
 

@@ -39,10 +39,12 @@ export class Enigma {
     question: string;
     response: string;
     isSolved: boolean = false;
+    attempts: number;
 
     constructor(question: string, response: string) {
         this.question = question;
         this.response = response;
+        this.attempts = 0;
     }
 }
 
@@ -102,6 +104,11 @@ export class Player {
         if (response == enigma.response) {
             enigma.isSolved = true;
             return true;
+        }
+        enigma.attempts += 1;
+        if (enigma.attempts === 3) {
+            this.inventory = [];
+            enigma.attempts = 0;
         }
         return false;
     }
