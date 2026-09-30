@@ -50,9 +50,11 @@ export class Enigma {
 
 export class Player {
     inventory: string[];
+    unavailables: string[];
 
     constructor() {
         this.inventory = [];
+        this.unavailables = [];
     }
 
     addToInventory(object: string): void {
@@ -112,6 +114,21 @@ export class Player {
         }
         return false;
     }
+
+    scream(alarm: Alarm) {
+        alarm.activate();
+        this.inventory.forEach(e => this.unavailables.push(e));
+        this.inventory = [];
+    }
+
+    tryDesactivateAlarm(alarm: Alarm, code: AlarmCode): void {
+        if (alarm.isActive === false) { return; }
+        if (alarm.code === code.code) {
+            alarm.isActive = false;
+            this.unavailables.forEach(e => this.addToInventory(e));
+            this.inventory = this.inventory.filter(e => e != code.code);
+        }
+    }
 }
 
 export class Room {
@@ -127,5 +144,27 @@ export class Room {
 
     removeItem(object: string): void {
         this.items = this.items.filter(e => e !== object);
+    }
+}
+
+export class Alarm {
+    isActive: boolean;
+    code: string
+
+    constructor(code: string) {
+        this.isActive = false;
+        this.code = code;
+    }
+
+    activate(): void {
+        this.isActive = true;
+    }
+}
+
+export class AlarmCode {
+    code: string
+
+    constructor(code: string) {
+        this.code = code;
     }
 }

@@ -7,7 +7,7 @@
 // Refactorisez votre code si nécessaire.
 
 import { describe, expect, it } from "vitest";
-import { Door, Enigma, Key, Player, Room } from "./escapeRoom";
+import { Alarm, AlarmCode, Door, Enigma, Key, Player, Room } from "./escapeRoom";
 
 describe("Door", () => {
     // Développez le comportement permettant de déterminer si une porte peut être franchie.
@@ -290,6 +290,123 @@ describe("Door", () => {
         expect(player.inventory).not.toEqual([]);
         expect(enigma.attempts).toEqual(2);
     });
+
+    // Ajoutez une alarme au jeu.
+    // L’alarme peut être inactive ou active.
+    // Une action permet d’activer l’alarme.
+    // Une fois activée, l’alarme reste active jusqu’à sa désactivation.
+    // Certaines portes ne peuvent pas être franchies lorsque l’alarme est active.
+    // Une porte qui n’est pas concernée par l’alarme reste franchissable.
+    // À faire :
+    // Identifiez les différents comportements à tester.
+    // Écrivez les tests avant le code.
+    // Vérifiez que les règles précédentes continuent de fonctionner.
+
+    it("Ajoutez une alarme au jeu. L’alarme peut être active", () => {
+        const alarm = new Alarm("1234");
+        alarm.activate();
+        expect(alarm.isActive).toBe(true);
+    });
+
+    it("Ajoutez une alarme au jeu. L’alarme peut être inactive", () => {
+        const alarm = new Alarm("1234");
+        expect(alarm.isActive).toBe(false);
+    });
+
+    it("Une action permet d’activer l’alarme", () => {
+        const alarm = new Alarm("1234");
+        const player = new Player;
+        player.scream(alarm);
+
+        expect(alarm.isActive).toBe(true);
+    });
+
+    it("Certaines portes ne peuvent pas être franchies lorsque l’alarme est active", () => {
+        const alarm = new Alarm("1234");
+        const door_1 = new Door('door_1');
+        const door_3 = new Door('door_3');
+        const player = new Player;
+        door_1.imposeKey("blue");
+        door_3.imposeKey("red");
+        player.addToInventory("red");
+        player.addToInventory("blue");
+        player.scream(alarm);
+
+        expect(player.canOpenDoor(door_1)).toBe(false);
+        expect(player.canOpenDoor(door_3)).toBe(false);
+    });
+
+    it("Une porte qui n’est pas concernée par l’alarme reste franchissable", () => {
+        const alarm = new Alarm("1234");
+        const door_2 = new Door('door_2');
+        const player = new Player;
+        player.scream(alarm);
+
+        expect(player.canOpenDoor(door_2)).toBe(true);
+    });
+
+    // Faites évoluer la désactivation de l’alarme.
+    // L’alarme peut être désactivée uniquement avec le bon code.
+    // Un mauvais code ne désactive pas l’alarme.
+    // Une fois l’alarme désactivée, les portes bloquées par l’alarme peuvent à nouveau être franchies.
+    // Le code permettant de désactiver l’alarme est un objet alarm-code.
+    // L’utilisation de cet objet le consomme.
+    // À faire :
+    // Écrivez les tests avant le code.
+    // Testez les cas de réussite et d’échec.
+    // Vérifiez que alarm-code disparaît de l’inventaire après utilisation.
+
+    it("L’alarme peut être désactivée avec le bon code", () => {
+        const alarm = new Alarm("1234");
+        const code = new AlarmCode("1234");
+        const player = new Player;
+        player.scream(alarm);
+        player.tryDesactivateAlarm(alarm, code);
+
+        expect(alarm.isActive).toBe(false);
+    });
+
+    it("Un mauvais code ne désactive pas l’alarme", () => {
+        const alarm = new Alarm("1234");
+        const code = new AlarmCode("1235");
+        const player = new Player;
+        player.scream(alarm);
+        player.tryDesactivateAlarm(alarm, code);
+
+        expect(alarm.isActive).toBe(true);
+    });
+
+    it("Une fois l’alarme désactivée, les portes bloquées par l’alarme peuvent à nouveau être franchies", () => {
+        const alarm = new Alarm("1234");
+        const door_1 = new Door('door_1');
+        const door_3 = new Door('door_3');
+        const code = new AlarmCode("1234");
+
+        const player = new Player;
+        door_1.imposeKey("blue");
+        door_3.imposeKey("red");
+        player.addToInventory("red");
+        player.addToInventory("blue");
+        player.scream(alarm);
+        player.tryDesactivateAlarm(alarm, code);
+
+        expect(player.canOpenDoor(door_1)).toBe(true);
+        expect(player.canOpenDoor(door_3)).toBe(true);
+
+    });
+
+    it("L'utilisaion de l'objet alarm-code le consomme", () => {
+        const alarm = new Alarm("1234");
+        const code = new AlarmCode("1234");
+        const player = new Player;
+        player.addToInventory(code.code);
+        player.scream(alarm);
+        player.tryDesactivateAlarm(alarm, code);
+
+        expect(player.inventory).not.toContain(code.code);
+
+    });
+
 
 
     // it("", () => {});
