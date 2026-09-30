@@ -148,6 +148,36 @@ describe("Door", () => {
 
     });
 
+
+    // Ajoutez la possibilité pour le joueur d'utiliser un objet.
+    // La règle métier est :
+    // Un joueur ne peut utiliser qu'un objet qu'il possède dans son inventaire.
+    // Testez les deux situations :
+    // le joueur possède l'objet ;
+    // le joueur ne possède pas l'objet.
+    // Déterminez le comportement attendu lorsqu'un joueur tente d'utiliser un objet qu'il ne possède pas.
+
+
+    it("Un joueur peut utiliser un objet qu'il possède dans son inventaire", () => {
+        const player = new Player;
+        const object = "torch";
+        player.addToInventory(object);
+
+        expect(player.useObject(object)).toBe(true);
+        expect(player.inventory).not.toContain(object);
+
+
+    });
+
+    it("Un joueur ne peut pas utiliser un objet qu'il ne possède pas dans son inventaire", () => {
+        const player = new Player;
+        const object = "torch";
+        player.useObject(object);
+
+        expect(player.useObject(object)).toBe(false);
+    });
+
+
     // it("", () => {});
 
 

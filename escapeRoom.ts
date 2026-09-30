@@ -85,6 +85,14 @@ export class Player {
         room.removeItem(object);
         return "objet ramassé";
     }
+
+    useObject(object: string): boolean {
+        if (!this.inventory.find(object => object === object)) {
+            return false;
+        }
+        this.inventory = this.inventory.filter(e => e !== object);
+        return true;
+    }
 }
 
 export class Room {
