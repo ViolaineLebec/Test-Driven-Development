@@ -16,7 +16,8 @@ describe("Door", () => {
 
     it("une porte fermée ne peut pas être franchie", () => {
         const door = new Door('porte 1');
-        expect(door.passDoor()).toBe(false);
+        door.isLocked = true;
+        expect(door.canBeOpen()).toBe(false);
     });
 
     // Ajoutez le comportement permettant de franchir une porte ouverte.
@@ -25,8 +26,7 @@ describe("Door", () => {
 
     it("Une porte ouverte peut être franchie", () => {
         const door = new Door('porte 1');
-        door.openDoor();
-        expect(door.passDoor()).toBe(true);
+        expect(door.canBeOpen()).toBe(true);
     });
 
     // Ajoutez la possibilité d'ouvrir une porte nécessitant une clé.
@@ -44,7 +44,7 @@ describe("Door", () => {
 
     it("chaque porte peut nécessiter une clé particulière", () => {
         const door = new Door('porte 1');
-        door.imposeKey("bleu");
+        door.requireKey("bleu");
         expect(door.key).not.toBe(undefined);
     });
 
@@ -53,7 +53,7 @@ describe("Door", () => {
         const door = new Door('porte 1');
         const player = new Player;
         const key = "bleu";
-        door.imposeKey(key);
+        door.requireKey(key);
         player.addToInventory(key);
 
         expect(player.canOpenDoor(door)).toBe(true);
@@ -63,7 +63,7 @@ describe("Door", () => {
         const door = new Door('porte 1');
         const player = new Player;
         const key = "bleu";
-        door.imposeKey(key);
+        door.requireKey(key);
 
         expect(player.canOpenDoor(door)).toBe(false);
     });
@@ -96,13 +96,13 @@ describe("Door", () => {
         const door = new Door('porte 1');
         const player = new Player;
         const key = "blue";
-        door.imposeKey(key);
+        door.requireKey(key);
         player.addToInventory(key);
         player.addToInventory("red");
         player.addToInventory("torch");
-        player.openDoor(door);
+        player.unlockDoor(door);
 
-        expect(door.isClosed).toBe(false);
+        expect(door.isLocked).toBe(false);
         expect(player.inventory).not.toContain(key);
         expect(player.inventory).toContain("red");
         expect(player.inventory).toContain("torch");
@@ -163,16 +163,16 @@ describe("Door", () => {
         const object = "torch";
         player.addToInventory(object);
 
-        expect(player.useObject(object)).toBe(true);
-        expect(player.inventory).not.toContain(object);
+        expect(player.canUseObject(object)).toBe(true);
+        expect(player.inventory).toContain(object);
     });
 
     it("Un joueur ne peut pas utiliser un objet qu'il ne possède pas dans son inventaire", () => {
         const player = new Player;
         const object = "torch";
-        player.useObject(object);
+        player.canUseObject(object);
 
-        expect(player.useObject(object)).toBe(false);
+        expect(player.canUseObject(object)).toBe(false);
     });
 
     // Ajoutez la possibilité de protéger une porte avec une énigme.
@@ -195,7 +195,7 @@ describe("Door", () => {
     it("Une porte peut être associée à une énigme", () => {
         const door = new Door('porte 1');
         let enigma = new Enigma("M. et Mme Ervitmonslip ont deux fils, comment s'appellent-ils?", "Jean, Philippe");
-        door.imposeEnigma(enigma);
+        door.requireEnigma(enigma);
 
         expect(door.enigma).not.toBe(undefined);
     });
@@ -204,7 +204,7 @@ describe("Door", () => {
         const door = new Door('porte 1');
         const player = new Player;
         const enigma = new Enigma("M. et Mme Ervitmonslip ont deux fils, comment s'appellent-ils?", "Jean, Philippe");
-        door.imposeEnigma(enigma);
+        door.requireEnigma(enigma);
         player.tryEnigma(enigma, "Jean, Philippe");
 
         expect(enigma.isSolved).toBe(true);
@@ -214,7 +214,7 @@ describe("Door", () => {
         const door = new Door('porte 1');
         const player = new Player;
         const enigma = new Enigma("M. et Mme Ervitmonslip ont deux fils, comment s'appellent-ils?", "Jean, Philippe");
-        door.imposeEnigma(enigma);
+        door.requireEnigma(enigma);
         player.tryEnigma(enigma, "Jean, Charles");
 
         expect(enigma.isSolved).toBe(false);
@@ -224,8 +224,8 @@ describe("Door", () => {
         const door = new Door('porte 1');
         const player = new Player;
         const enigma = new Enigma("M. et Mme Ervitmonslip ont deux fils, comment s'appellent-ils?", "Jean, Philippe");
-        door.imposeEnigma(enigma);
         enigma.isSolved = false;
+        door.requireEnigma(enigma);
 
         expect(player.canOpenDoor(door)).toBe(false);
     });
@@ -234,8 +234,8 @@ describe("Door", () => {
         const door = new Door('porte 1');
         const player = new Player;
         const enigma = new Enigma("M. et Mme Ervitmonslip ont deux fils, comment s'appellent-ils?", "Jean, Philippe");
-        door.imposeEnigma(enigma);
-        enigma.isSolved = true;
+        door.requireEnigma(enigma);
+        player.tryEnigma(enigma, "Jean, Philippe");
 
         expect(player.canOpenDoor(door)).toBe(true);
     });
@@ -254,7 +254,7 @@ describe("Door", () => {
         const door = new Door('porte 1');
         const player = new Player;
         const enigma = new Enigma("M. et Mme Ervitmonslip ont deux fils, comment s'appellent-ils?", "Jean, Philippe");
-        door.imposeEnigma(enigma);
+        door.requireEnigma(enigma);
         player.tryEnigma(enigma, "Jean, Charles");
         player.tryEnigma(enigma, "Pierre, Philippe");
 
@@ -268,7 +268,7 @@ describe("Door", () => {
         const enigma = new Enigma("M. et Mme Ervitmonslip ont deux fils, comment s'appellent-ils?", "Jean, Philippe");
         player.addToInventory("torch");
         player.addToInventory("blue");
-        door.imposeEnigma(enigma);
+        door.requireEnigma(enigma);
         player.tryEnigma(enigma, "Jean, Charles");
         player.tryEnigma(enigma, "Pierre, Philippe");
         player.tryEnigma(enigma, "Pierre, Charles");
@@ -283,7 +283,7 @@ describe("Door", () => {
         const enigma = new Enigma("M. et Mme Ervitmonslip ont deux fils, comment s'appellent-ils?", "Jean, Philippe");
         player.addToInventory("torch");
         player.addToInventory("blue");
-        door.imposeEnigma(enigma);
+        door.requireEnigma(enigma);
         player.tryEnigma(enigma, "Jean, Charles");
         player.tryEnigma(enigma, "Pierre, Philippe");
 
@@ -303,18 +303,21 @@ describe("Door", () => {
     // Vérifiez que les règles précédentes continuent de fonctionner.
 
     it("Ajoutez une alarme au jeu. L’alarme peut être active", () => {
-        const alarm = new Alarm("1234");
+        const alarmCode = new AlarmCode("1234");
+        const alarm = new Alarm(alarmCode);
         alarm.activate();
         expect(alarm.isActive).toBe(true);
     });
 
     it("Ajoutez une alarme au jeu. L’alarme peut être inactive", () => {
-        const alarm = new Alarm("1234");
+        const alarmCode = new AlarmCode("1234");
+        const alarm = new Alarm(alarmCode);
         expect(alarm.isActive).toBe(false);
     });
 
     it("Une action permet d’activer l’alarme", () => {
-        const alarm = new Alarm("1234");
+        const alarmCode = new AlarmCode("1234");
+        const alarm = new Alarm(alarmCode);
         const player = new Player;
         player.scream(alarm);
 
@@ -322,12 +325,13 @@ describe("Door", () => {
     });
 
     it("Certaines portes ne peuvent pas être franchies lorsque l’alarme est active", () => {
-        const alarm = new Alarm("1234");
+        const alarmCode = new AlarmCode("1234");
+        const alarm = new Alarm(alarmCode);
         const door_1 = new Door('door_1');
         const door_3 = new Door('door_3');
         const player = new Player;
-        door_1.imposeKey("blue");
-        door_3.imposeKey("red");
+        door_1.requireKey("blue");
+        door_3.requireKey("red");
         player.addToInventory("red");
         player.addToInventory("blue");
         player.scream(alarm);
@@ -337,7 +341,8 @@ describe("Door", () => {
     });
 
     it("Une porte qui n’est pas concernée par l’alarme reste franchissable", () => {
-        const alarm = new Alarm("1234");
+        const alarmCode = new AlarmCode("1234");
+        const alarm = new Alarm(alarmCode);
         const door_2 = new Door('door_2');
         const player = new Player;
         player.scream(alarm);
@@ -357,59 +362,192 @@ describe("Door", () => {
     // Vérifiez que alarm-code disparaît de l’inventaire après utilisation.
 
     it("L’alarme peut être désactivée avec le bon code", () => {
-        const alarm = new Alarm("1234");
-        const code = new AlarmCode("1234");
+        const alarmCode = new AlarmCode("1234");
+        const alarm = new Alarm(alarmCode);
         const player = new Player;
         player.scream(alarm);
-        player.tryDesactivateAlarm(alarm, code);
+        player.addToInventory(alarmCode);
+        player.tryDesactivateAlarm(alarm);
 
         expect(alarm.isActive).toBe(false);
     });
 
     it("Un mauvais code ne désactive pas l’alarme", () => {
-        const alarm = new Alarm("1234");
+        const alarmCode = new AlarmCode("1234");
+        const alarm = new Alarm(alarmCode);
         const code = new AlarmCode("1235");
         const player = new Player;
         player.scream(alarm);
-        player.tryDesactivateAlarm(alarm, code);
+        player.addToInventory(code);
+        player.tryDesactivateAlarm(alarm);
 
         expect(alarm.isActive).toBe(true);
     });
 
     it("Une fois l’alarme désactivée, les portes bloquées par l’alarme peuvent à nouveau être franchies", () => {
-        const alarm = new Alarm("1234");
         const door_1 = new Door('door_1');
         const door_3 = new Door('door_3');
         const code = new AlarmCode("1234");
-
+        const alarm = new Alarm(code);
         const player = new Player;
-        door_1.imposeKey("blue");
-        door_3.imposeKey("red");
+        door_1.requireKey("blue");
+        door_3.requireKey("red");
         player.addToInventory("red");
         player.addToInventory("blue");
         player.scream(alarm);
-        player.tryDesactivateAlarm(alarm, code);
+        player.addToInventory(code);
+        player.tryDesactivateAlarm(alarm);
 
         expect(player.canOpenDoor(door_1)).toBe(true);
         expect(player.canOpenDoor(door_3)).toBe(true);
 
     });
 
-    it("L'utilisaion de l'objet alarm-code le consomme", () => {
-        const alarm = new Alarm("1234");
+    it("L'utilisation de l'objet alarm-code le consomme", () => {
         const code = new AlarmCode("1234");
+        const alarm = new Alarm(code);
         const player = new Player;
         player.addToInventory(code.code);
         player.scream(alarm);
-        player.tryDesactivateAlarm(alarm, code);
+        player.tryDesactivateAlarm(alarm);
 
         expect(player.inventory).not.toContain(code.code);
 
     });
 
+    // Certaines portes nécessitent maintenant plusieurs conditions pour être franchies.
+    // La porte du laboratoire nécessite :
+    // la clé du laboratoire ;
+    // l’alarme désactivée ;
+    // l’énigme du laboratoire résolue.
+    // À faire :
+    // Testez chaque situation :
+    // aucune condition remplie ;
+    // uniquement la clé ;
+    // uniquement l’énigme ;
+    // uniquement l’alarme désactivée ;
+    // clé + énigme ;
+    // clé + alarme désactivée ;
+    // énigme + alarme désactivée ;
+    // les trois conditions réunies.
 
+    it("Sans clé, ni énigme résolue, ni désactivation de l'alarme, la porte du laboratoir ne peut pas être franchie.", () => {
+        const laboDoor = new Door("laboDoor");
+        const enigma = new Enigma("M. et Mme Ervitmonslip ont deux fils, comment s'appellent-ils?", "Jean, Philippe");
+        const player = new Player;
+        const code = new AlarmCode("1234");
+        const alarm = new Alarm(code);
+        laboDoor.requireEnigma(enigma);
+        laboDoor.requireKey("blue");
+        player.scream(alarm);
 
-    // it("", () => {});
+        expect(player.canOpenDoor(laboDoor)).toBe(false);
+    });
 
+    it("La clé ne suffit pas pour franchir la porte du laboratoire", () => {
+        const laboDoor = new Door("laboDoor");
+        const enigma = new Enigma("M. et Mme Ervitmonslip ont deux fils, comment s'appellent-ils?", "Jean, Philippe");
+        const player = new Player;
+        const code = new AlarmCode("1234");
+        const alarm = new Alarm(code);
+        laboDoor.requireEnigma(enigma);
+        laboDoor.requireKey("blue");
+        player.scream(alarm);
+        player.addToInventory("blue");
 
+        expect(player.canOpenDoor(laboDoor)).toBe(false);
+    });
+
+    it("Résoudre l'énigme ne suffit pas pour franchir la porte du laboratoire", () => {
+        const laboDoor = new Door("laboDoor");
+        const enigma = new Enigma("M. et Mme Ervitmonslip ont deux fils, comment s'appellent-ils?", "Jean, Philippe");
+        const player = new Player;
+        const code = new AlarmCode("1234");
+        const alarm = new Alarm(code);
+        laboDoor.requireEnigma(enigma);
+        laboDoor.requireKey("blue");
+        player.scream(alarm);
+        player.tryEnigma(enigma, "Jean, Philippe");
+
+        expect(player.canOpenDoor(laboDoor)).toBe(false);
+    });
+
+    it("Désactiver l'alarme ne suffit pas pour franchir la porte du laboratoire", () => {
+        const laboDoor = new Door("laboDoor");
+        const enigma = new Enigma("M. et Mme Ervitmonslip ont deux fils, comment s'appellent-ils?", "Jean, Philippe");
+        const player = new Player;
+        const code = new AlarmCode("1234");
+        const alarm = new Alarm(code);
+        laboDoor.requireEnigma(enigma);
+        laboDoor.requireKey("blue");
+        player.scream(alarm);
+        player.addToInventory(code);
+        player.tryDesactivateAlarm(alarm);
+
+        expect(player.canOpenDoor(laboDoor)).toBe(false);
+    });
+
+    it("Résoudre l'énigme et avoir la clé ne suffisent pas pour franchir la porte du laboratoire", () => {
+        const laboDoor = new Door("laboDoor");
+        const enigma = new Enigma("M. et Mme Ervitmonslip ont deux fils, comment s'appellent-ils?", "Jean, Philippe");
+        const player = new Player;
+        const code = new AlarmCode("1234");
+        const alarm = new Alarm(code);
+        laboDoor.requireEnigma(enigma);
+        player.tryEnigma(enigma, "Jean, Philippe");
+        laboDoor.requireKey("blue");
+        player.addToInventory("blue");
+
+        player.scream(alarm);
+
+        expect(player.canOpenDoor(laboDoor)).toBe(false);
+    });
+
+    it("Désactiver l'alarme et avoir la clé ne suffisent pas pour franchir la porte du laboratoire", () => {
+        const laboDoor = new Door("laboDoor");
+        const enigma = new Enigma("M. et Mme Ervitmonslip ont deux fils, comment s'appellent-ils?", "Jean, Philippe");
+        const player = new Player;
+        const code = new AlarmCode("1234");
+        const alarm = new Alarm(code);
+        laboDoor.requireEnigma(enigma);
+        laboDoor.requireKey("blue");
+        player.addToInventory("blue");
+        player.scream(alarm);
+        player.addToInventory(code);
+
+        expect(player.canOpenDoor(laboDoor)).toBe(false);
+    });
+
+    it("Résoudre l'énigme et désactiver l'alarme ne suffisent pas pour franchir la porte du laboratoire", () => {
+        const laboDoor = new Door("laboDoor");
+        const enigma = new Enigma("M. et Mme Ervitmonslip ont deux fils, comment s'appellent-ils?", "Jean, Philippe");
+        const player = new Player;
+        const code = new AlarmCode("1234");
+        const alarm = new Alarm(code);
+        laboDoor.requireEnigma(enigma);
+        player.tryEnigma(enigma, "Jean, Philippe");
+        laboDoor.requireKey("blue");
+        player.scream(alarm);
+        player.addToInventory(code);
+        player.tryDesactivateAlarm(alarm);
+
+        expect(player.canOpenDoor(laboDoor)).toBe(false);
+    });
+
+    it("La porte du laboratoire nécessite une clé, une énigme résolue et une alarme désactivée pour être franchie", () => {
+        const laboDoor = new Door("laboDoor");
+        const enigma = new Enigma("M. et Mme Ervitmonslip ont deux fils, comment s'appellent-ils?", "Jean, Philippe");
+        const player = new Player;
+        const code = new AlarmCode("1234");
+        const alarm = new Alarm(code);
+        laboDoor.requireEnigma(enigma);
+        player.tryEnigma(enigma, "Jean, Philippe");
+        laboDoor.requireKey("blue");
+        player.addToInventory("blue");
+        player.scream(alarm);
+        player.addToInventory(code);
+        player.tryDesactivateAlarm(alarm);
+
+        expect(player.canOpenDoor(laboDoor)).toBe(true);
+    });
 });

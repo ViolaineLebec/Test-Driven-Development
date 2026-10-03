@@ -1,88 +1,84 @@
 export class Door {
     name: string;
-    isClosed: boolean;
-    key: string | undefined;
-    enigma: Enigma | undefined;
+    isLocked: boolean;
+    key: string;
+    enigma: Enigma;
 
     constructor(name: string) {
         this.name = name;
-        this.isClosed = true;
-        this.enigma = undefined;
-        this.key = undefined;
+        this.isLocked = false;
+        this.enigma = new Enigma("", "");
+        this.key = "";
     }
 
-    passDoor(): boolean {
-        if (this.isClosed) {
+    canBeOpen(): boolean {
+        if (this.isLocked) {
             return false;
         }
         return true;
     }
 
-    openDoor(): void {
-        if (!this.isClosed) {
+    unlock(): void {
+        if (!this.isLocked) {
             return;
         }
-        this.isClosed = false;
+        this.isLocked = false;
         return;
     }
 
-    imposeKey(key: string): void {
+    requireKey(key: string): void {
         this.key = key;
     }
 
-    imposeEnigma(enigma: Enigma): void {
+    requireEnigma(enigma: Enigma): void {
         this.enigma = enigma;
+        this.enigma.isSolved = false;
     }
 }
 
 export class Enigma {
     question: string;
     response: string;
-    isSolved: boolean = false;
+    isSolved: boolean;
     attempts: number;
 
     constructor(question: string, response: string) {
         this.question = question;
         this.response = response;
+        this.isSolved = true;
         this.attempts = 0;
     }
 }
 
 export class Player {
-    inventory: string[];
-    unavailables: string[];
+    inventory: any[];
+    unavailables: any[];
 
     constructor() {
-        this.inventory = [];
+        this.inventory = [""];
         this.unavailables = [];
     }
 
-    addToInventory(object: string): void {
-        this.inventory.push(object);
+    addToInventory(element: any): void {
+        this.inventory.push(element);
     }
 
     canOpenDoor(door: Door): boolean {
-        if (door.key === undefined) {
-            if (door.enigma === undefined) {
-                return true;
-            }
-            else if (door.enigma.isSolved === true) {
+        if (door.enigma.isSolved) {
+            if (this.inventory.find(e => e === door.key) !== undefined) {
                 return true;
             }
             return false;
         }
-        else if (this.inventory.find(key => key === door.key) !== undefined) {
-            return true;
-        }
         return false;
     }
 
-    openDoor(door: Door): void {
+    unlockDoor(door: Door): void {
         if (!this.canOpenDoor) {
             return;
         }
         this.inventory = this.inventory.filter(element => element !== door.key);
-        door.isClosed = false;
+        door.isLocked = false;
     }
 
     pickObject(object: string, room: Room): string {
@@ -94,16 +90,15 @@ export class Player {
         return "objet ramassé";
     }
 
-    useObject(object: string): boolean {
-        if (!this.inventory.find(object => object === object)) {
-            return false;
+    canUseObject(object: any): boolean {
+        if (this.inventory.find(e => e === object)) {
+            return true;
         }
-        this.inventory = this.inventory.filter(e => e !== object);
-        return true;
+        return false;
     }
 
     tryEnigma(enigma: Enigma, response: string): boolean {
-        if (response == enigma.response) {
+        if (response === enigma.response) {
             enigma.isSolved = true;
             return true;
         }
@@ -111,24 +106,28 @@ export class Player {
         if (enigma.attempts === 3) {
             this.inventory = [];
             enigma.attempts = 0;
+            return false;
         }
-        return false;
     }
 
     scream(alarm: Alarm) {
         alarm.activate();
         this.inventory.forEach(e => this.unavailables.push(e));
-        this.inventory = [];
+        this.inventory = [""];
     }
 
-    tryDesactivateAlarm(alarm: Alarm, code: AlarmCode): void {
-        if (alarm.isActive === false) { return; }
-        if (alarm.code === code.code) {
+    tryDesactivateAlarm(alarm: Alarm): void {
+        if (alarm.isActive === false) {
+            return;
+        }
+        if (this.inventory.find(e => e === alarm.alarmCode) !== undefined) {
             alarm.isActive = false;
             this.unavailables.forEach(e => this.addToInventory(e));
-            this.inventory = this.inventory.filter(e => e != code.code);
+            this.inventory = this.inventory.filter(e => e != alarm.alarmCode);
         }
     }
+
+
 }
 
 export class Room {
@@ -149,15 +148,19 @@ export class Room {
 
 export class Alarm {
     isActive: boolean;
-    code: string
+    alarmCode: AlarmCode;
 
-    constructor(code: string) {
+    constructor(alarmCode: AlarmCode) {
         this.isActive = false;
-        this.code = code;
+        this.alarmCode = alarmCode;
     }
 
     activate(): void {
         this.isActive = true;
+    }
+
+    desactivate(): void {
+        this.isActive = false;
     }
 }
 
